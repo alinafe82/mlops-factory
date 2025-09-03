@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inference-config
+  namespace: mlops-factory
+data:
+  MODEL_NAME: "factory_defect_model"
+  MODEL_STAGE: "Production"
+  MLFLOW_TRACKING_URI: "file:/models/mlruns"

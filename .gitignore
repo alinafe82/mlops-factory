@@ -6,3 +6,4 @@ app/mlruns/
 models/
 dist/
 build/
+.DS_Store

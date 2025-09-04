@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+
 def synthesize(n=5000, seed=42):
     rng = np.random.default_rng(seed)
     temperature = rng.normal(60, 5, n)
@@ -9,10 +10,7 @@ def synthesize(n=5000, seed=42):
     rpm = rng.normal(1500, 100, n)
     defect = (temperature > 65) | (vibration > 0.4) | (pressure < 28) | (rpm > 1650)
     y = defect.astype(int)
-    X = pd.DataFrame({
-        "temperature": temperature,
-        "vibration": vibration,
-        "pressure": pressure,
-        "rpm": rpm
-    })
+    X = pd.DataFrame(
+        {"temperature": temperature, "vibration": vibration, "pressure": pressure, "rpm": rpm}
+    )
     return X, y

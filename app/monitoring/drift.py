@@ -1,4 +1,5 @@
 import numpy as np
+
 from .metrics import INPUT_MEAN, INPUT_STD
 
 WINDOW = 200
@@ -6,8 +7,8 @@ _buf = []
 
 FEATURES = ["temperature", "vibration", "pressure", "rpm"]
 
+
 def update_input_stats(x):
-    global _buf
     _buf.append(x)
     if len(_buf) > WINDOW:
         _buf[:] = _buf[-WINDOW:]

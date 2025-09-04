@@ -1,8 +1,10 @@
 import mlflow
 import numpy as np
+
 from .config import MLFLOW_TRACKING_URI
 
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+
 
 def load_model(model_name: str, stage: str):
     try:
@@ -15,6 +17,7 @@ def load_model(model_name: str, stage: str):
                 return mlflow.pyfunc.load_model(versions[0].source)
         except Exception:
             return None
+
 
 def predict_proba(model, X: np.ndarray) -> float:
     if model is None:

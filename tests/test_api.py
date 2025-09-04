@@ -1,9 +1,9 @@
 import os
-
-os.environ["SKIP_MODEL_LOAD"] = "1"  # speed up CI
 from fastapi.testclient import TestClient
-
 from app.main import app
+
+# set env after imports
+os.environ["SKIP_MODEL_LOAD"] = "1"
 
 client = TestClient(app)
 

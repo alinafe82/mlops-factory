@@ -11,6 +11,11 @@ def synthesize(n=5000, seed=42):
     defect = (temperature > 65) | (vibration > 0.4) | (pressure < 28) | (rpm > 1650)
     y = defect.astype(int)
     X = pd.DataFrame(
-        {"temperature": temperature, "vibration": vibration, "pressure": pressure, "rpm": rpm}
+        {
+            "temperature": temperature,
+            "vibration": vibration,
+            "pressure": pressure,
+            "rpm": rpm,
+        }
     )
     return X, y

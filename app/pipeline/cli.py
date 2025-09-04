@@ -14,10 +14,14 @@ def cli():
 
 @cli.command()
 @click.option(
-    "--framework", type=click.Choice(["sklearn", "tensorflow", "pytorch"]), default="sklearn"
+    "--framework",
+    type=click.Choice(["sklearn", "tensorflow", "pytorch"]),
+    default="sklearn",
 )
 @click.option("--name", default=MODEL_NAME, help="Registered model name")
-@click.option("--stage", default=None, help="Stage to promote to (e.g., Staging, Production)")
+@click.option(
+    "--stage", default=None, help="Stage to promote to (e.g., Staging, Production)"
+)
 def train(framework, name, stage):
     if framework == "sklearn":
         run_sklearn(name, stage)

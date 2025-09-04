@@ -9,7 +9,12 @@ from starlette.responses import Response
 from .config import MLFLOW_TRACKING_URI, MODEL_NAME, MODEL_STAGE, SKIP_MODEL_LOAD
 from .model_registry import load_model, predict_proba
 from .monitoring.drift import update_input_stats
-from .monitoring.metrics import INFERENCE_ERRORS, INFLIGHT, REQUEST_COUNT, REQUEST_LATENCY
+from .monitoring.metrics import (
+    INFERENCE_ERRORS,
+    INFLIGHT,
+    REQUEST_COUNT,
+    REQUEST_LATENCY,
+)
 
 app = FastAPI(title="MLOps Factory Inference", version="1.0.0")
 
@@ -38,7 +43,11 @@ def _startup():
 
 @app.get("/healthz")
 def healthz():
-    return {"status": "ok", "model_loaded": model is not None, "tracking_uri": MLFLOW_TRACKING_URI}
+    return {
+        "status": "ok",
+        "model_loaded": model is not None,
+        "tracking_uri": MLFLOW_TRACKING_URI,
+    }
 
 
 @app.get("/metrics")
@@ -53,9 +62,9 @@ def infer(req: InferenceRequest):
     INFLIGHT.inc()
     status = "200"
     try:
-        x = np.array([req.temperature, req.vibration, req.pressure, req.rpm], dtype=float).reshape(
-            1, -1
-        )
+        x = np.array(
+            [req.temperature, req.vibration, req.pressure, req.rpm], dtype=float
+        ).reshape(1, -1)
         update_input_stats(x[0])
         p = predict_proba(model, x)
         return {"ok": True, "defect_probability": float(p)}

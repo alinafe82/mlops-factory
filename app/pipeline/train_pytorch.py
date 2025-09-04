@@ -25,9 +25,13 @@ class MLP(nn.Module):
         return self.net(x)
 
 
-def run_pytorch(model_name: str, stage: str = None, epochs: int = 10, batch_size: int = 64):
+def run_pytorch(
+    model_name: str, stage: str = None, epochs: int = 10, batch_size: int = 64
+):
     X, y = synthesize()
-    X_train, X_test, y_train, y_test = train_test_split(X.values, y, test_size=0.2, random_state=7)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X.values, y, test_size=0.2, random_state=7
+    )
 
     device = torch.device("cpu")
     model = MLP().to(device)
@@ -58,7 +62,9 @@ def run_pytorch(model_name: str, stage: str = None, epochs: int = 10, batch_size
             proba = model(X_test_t).numpy().reshape(-1)
         auc = roc_auc_score(y_test, proba)
         mlflow.log_metric("auc", float(auc))
-        mlflow.pytorch.log_model(model, artifact_path="model", registered_model_name=model_name)
+        mlflow.pytorch.log_model(
+            model, artifact_path="model", registered_model_name=model_name
+        )
 
         if stage:
             client = mlflow.client.MlflowClient()
@@ -66,4 +72,6 @@ def run_pytorch(model_name: str, stage: str = None, epochs: int = 10, batch_size
             client.transition_model_version_stage(
                 model_name, mv.version, stage, archive_existing_versions=True
             )
-            print(f"Registered and promoted '{model_name}' to stage '{stage}', AUC={auc:.3f}")
+            print(
+                f"Registered and promoted '{model_name}' to stage '{stage}', AUC={auc:.3f}"
+            )

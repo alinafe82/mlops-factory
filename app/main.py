@@ -1,4 +1,5 @@
 import time
+from contextlib import asynccontextmanager
 
 import numpy as np
 from fastapi import FastAPI, HTTPException
@@ -16,9 +17,18 @@ from .monitoring.metrics import (
     REQUEST_LATENCY,
 )
 
-app = FastAPI(title="MLOps Factory Inference", version="1.0.0")
-
 model = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global model
+    if not SKIP_MODEL_LOAD:
+        model = load_model(MODEL_NAME, MODEL_STAGE)
+    yield
+
+
+app = FastAPI(title="MLOps Factory Inference", version="1.0.0", lifespan=lifespan)
 
 
 class InferenceRequest(BaseModel):
@@ -31,14 +41,6 @@ class InferenceRequest(BaseModel):
 class InferenceResponse(BaseModel):
     ok: bool
     defect_probability: float
-
-
-@app.on_event("startup")
-def _startup():
-    global model
-    if SKIP_MODEL_LOAD:
-        return
-    model = load_model(MODEL_NAME, MODEL_STAGE)
 
 
 @app.get("/healthz")

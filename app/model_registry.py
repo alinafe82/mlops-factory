@@ -1,12 +1,12 @@
-import mlflow
 import numpy as np
 
 from .config import MLFLOW_TRACKING_URI
 
-mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-
 
 def load_model(model_name: str, stage: str):
+    import mlflow
+
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
     try:
         return mlflow.pyfunc.load_model(f"models:/{model_name}/{stage}")
     except Exception:

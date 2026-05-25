@@ -1,9 +1,10 @@
 import os
-from fastapi.testclient import TestClient
-from app.main import app
 
-# set env after imports
 os.environ["SKIP_MODEL_LOAD"] = "1"
+
+from fastapi.testclient import TestClient  # noqa: E402
+
+from app.main import app  # noqa: E402
 
 client = TestClient(app)
 

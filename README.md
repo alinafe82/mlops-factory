@@ -1,11 +1,10 @@
 # MLOps Factory
 
-Production-ready application for **seamless deployment of machine learning models** into automation products.
-Includes an end-to-end pipeline (data → train → register → deploy → monitor), a FastAPI inference service,
-observability, Kubernetes manifests, CI/CD, security and incident response documentation.
+Reference MLOps service for training, registering, serving, and monitoring a small model.
 
-> **Most valuable capability showcased here:** *Seamless, reliable deployment of versioned ML models into production systems.*
-> This repo operationalizes models via MLflow (staging/promotions/rollbacks) and a FastAPI service that loads staged models at runtime.
+This repo is a public-safe example of the shape of an ML platform service: a training CLI,
+MLflow model registry integration, a FastAPI inference API, Prometheus metrics, Kubernetes
+manifests, and operations notes. It is not a claim of a deployed production platform.
 
 ---
 
@@ -36,16 +35,15 @@ observability, Kubernetes manifests, CI/CD, security and incident response docum
 
 ---
 
-## Features
+## What It Shows
 
-- **Multiple training backends:** scikit-learn (baseline), **TensorFlow**, **PyTorch** (CPU).
-- **MLflow integration:** track runs, log metrics, register and stage models (`Staging`/`Production`) for safe rollouts.
-- **Inference microservice:** FastAPI with `/infer`, `/healthz`, `/metrics` (Prometheus).
-- **Monitoring:** latency histograms, request counters, error counters, and simple input-drift signals.
-- **Kubernetes-first:** Deployment, Service, HPA, NetworkPolicy, ServiceMonitor, ConfigMap.
-- **CI/CD:** GitHub Actions — fast unit tests + image build/push to GHCR.
-- **Operations:** incident runbook, security & privacy checklists, SRE playbook, Grafana dashboard JSON.
-- **Serverless/Edge-ready:** containerized inference (CPU) for portability.
+- Training pipeline shape with scikit-learn plus optional TensorFlow/PyTorch examples.
+- MLflow tracking and model loading boundaries.
+- FastAPI inference service with `/infer`, `/healthz`, and `/metrics`.
+- Prometheus request, error, latency, and simple input-drift metrics.
+- Kubernetes manifests for deployment review.
+- CI that runs linting and unit tests with the lightweight dependency set.
+- Operations notes for incident response, security, privacy, and SRE review.
 
 ---
 
@@ -108,12 +106,12 @@ mlops-factory/
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-# Full stack (includes TensorFlow + PyTorch)
-pip install -r app/requirements.txt
+# Lightweight local/test stack
+pip install -r app/requirements-dev.txt
+pytest -q
 ```
 
-> Note: TensorFlow/PyTorch wheels may be large; on macOS/Linux CPU they install via pip.
-> For fast CI cycles, use `requirements-base.txt` only.
+Use `app/requirements.txt` only when you want the optional TensorFlow and PyTorch examples.
 
 ### 2) Start MLflow (local file backend)
 ```bash
@@ -186,7 +184,7 @@ kubectl -n mlops-factory port-forward svc/inference 8080:80
 
 ## CI/CD
 
-- **ci.yml**: lint + unit tests using `requirements-base.txt` (fast).
+- **ci.yml**: lint + unit tests using `requirements-dev.txt` (fast).
 - **docker.yml**: build and push `ghcr.io/<your-user>/mlops-factory:latest` on push to `main`.
 
 > Make the package public under *GitHub → Packages → mlops-factory → Settings → Change visibility* if needed.
@@ -210,10 +208,25 @@ kubectl -n mlops-factory port-forward svc/inference 8080:80
 
 ---
 
-## Extending
+## Architecture Notes
+
+See [docs/architecture.md](docs/architecture.md).
+
+## Limitations
+
+- The default data is synthetic.
+- The production-size ML frameworks are optional and intentionally excluded from CI.
+- The Kubernetes manifests are reviewable examples; they are not tied to a live cluster.
+
+## Future Improvements
 
 - Add a feature store, batch scoring job, or pipeline orchestration (TFX/Kubeflow) as needed.
 - Swap baseline model for domain-specific architectures (e.g., vision or time-series).
+- Add integration tests for MLflow model promotion and rollback behavior.
+
+## Interview Notes
+
+See [docs/interview-notes.md](docs/interview-notes.md).
 
 ---
 

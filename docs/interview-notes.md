@@ -24,6 +24,7 @@ CI-supported path.
 - Removed tracked `.DS_Store` files.
 - Replaced inflated README claims with explicit scope.
 - Added a dev requirements file used by CI.
+- Bumped vulnerable optional/runtime ML dependencies flagged by Dependabot.
 - Added architecture notes, ADR, and interview notes.
 
 ## Likely Questions

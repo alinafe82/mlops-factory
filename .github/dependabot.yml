@@ -10,4 +10,4 @@ updates:
       interval: weekly
     ignore:
       - dependency-name: pandas
-        versions: ["3.x"]
+        versions: [">=3.0.0"]

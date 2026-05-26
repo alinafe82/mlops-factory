@@ -3,7 +3,7 @@ uvicorn==0.30.6
 pydantic==2.9.2
 prometheus_client==0.25.0
 numpy==1.26.4
-pandas==3.0.3
+pandas==2.2.2
 scikit-learn==1.8.0
 mlflow==3.11.1
 click==8.1.7

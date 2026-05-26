@@ -8,3 +8,6 @@ updates:
     directory: /app
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: pandas
+        versions: ["3.x"]

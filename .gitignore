@@ -7,3 +7,6 @@ models/
 dist/
 build/
 .DS_Store
+
+# Local architecture-agent context. Do not publish.
+.specs/

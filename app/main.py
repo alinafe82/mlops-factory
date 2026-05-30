@@ -43,23 +43,29 @@ class InferenceResponse(BaseModel):
     defect_probability: float
 
 
-@app.get("/healthz")
-def healthz():
-    return {
-        "status": "ok",
-        "model_loaded": model is not None,
-        "tracking_uri": MLFLOW_TRACKING_URI,
-    }
+class HealthResponse(BaseModel):
+    status: str
+    model_loaded: bool
+    tracking_uri: str
 
 
-@app.get("/metrics")
-def metrics():
+@app.get("/healthz", response_model=HealthResponse)
+def healthz() -> HealthResponse:
+    return HealthResponse(
+        status="ok",
+        model_loaded=model is not None,
+        tracking_uri=MLFLOW_TRACKING_URI,
+    )
+
+
+@app.get("/metrics", response_model=None)
+def metrics() -> Response:
     data = generate_latest()
     return Response(content=data, media_type=CONTENT_TYPE_LATEST)
 
 
 @app.post("/infer", response_model=InferenceResponse)
-def infer(req: InferenceRequest):
+def infer(req: InferenceRequest) -> InferenceResponse:
     start = time.time()
     INFLIGHT.inc()
     status = "200"
@@ -69,7 +75,7 @@ def infer(req: InferenceRequest):
         ).reshape(1, -1)
         update_input_stats(x[0])
         p = predict_proba(model, x)
-        return {"ok": True, "defect_probability": float(p)}
+        return InferenceResponse(ok=True, defect_probability=float(p))
     except Exception as e:
         INFERENCE_ERRORS.inc()
         status = "500"

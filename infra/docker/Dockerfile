@@ -12,9 +12,13 @@ RUN pip install --no-cache-dir -r app/requirements-base.txt
 RUN pip install --no-cache-dir -r app/requirements-ml.txt
 
 COPY app /app/app
+RUN useradd --create-home --shell /usr/sbin/nologin appuser \
+    && mkdir -p /models/mlruns \
+    && chown -R appuser:appuser /app /models
 
 EXPOSE 8080
 
 ENV MODEL_NAME=factory_defect_model     MODEL_STAGE=Production     MLFLOW_TRACKING_URI=file:/models/mlruns
 
+USER appuser
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]

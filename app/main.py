@@ -1,3 +1,4 @@
+import logging
 import time
 from contextlib import asynccontextmanager
 
@@ -6,6 +7,8 @@ from fastapi import FastAPI, HTTPException
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel
 from starlette.responses import Response
+
+logger = logging.getLogger(__name__)
 
 from .config import MLFLOW_TRACKING_URI, MODEL_NAME, MODEL_STAGE, SKIP_MODEL_LOAD
 from .model_registry import load_model, predict_proba
@@ -76,10 +79,11 @@ def infer(req: InferenceRequest) -> InferenceResponse:
         update_input_stats(x[0])
         p = predict_proba(model, x)
         return InferenceResponse(ok=True, defect_probability=float(p))
-    except Exception as e:
+    except Exception:
         INFERENCE_ERRORS.inc()
         status = "500"
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Inference failed")
+        raise HTTPException(status_code=500, detail="Inference failed")
     finally:
         REQUEST_LATENCY.observe(time.time() - start)
         REQUEST_COUNT.labels(endpoint="/infer", method="POST", status=status).inc()

@@ -1,3 +1,4 @@
+import logging
 import time
 from contextlib import asynccontextmanager
 
@@ -16,6 +17,8 @@ from .monitoring.metrics import (
     REQUEST_COUNT,
     REQUEST_LATENCY,
 )
+
+logger = logging.getLogger(__name__)
 
 model = None
 
@@ -76,10 +79,11 @@ def infer(req: InferenceRequest) -> InferenceResponse:
         update_input_stats(x[0])
         p = predict_proba(model, x)
         return InferenceResponse(ok=True, defect_probability=float(p))
-    except Exception as e:
+    except Exception:
         INFERENCE_ERRORS.inc()
         status = "500"
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Inference failed")
+        raise HTTPException(status_code=500, detail="Inference failed")
     finally:
         REQUEST_LATENCY.observe(time.time() - start)
         REQUEST_COUNT.labels(endpoint="/infer", method="POST", status=status).inc()

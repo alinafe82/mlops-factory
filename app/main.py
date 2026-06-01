@@ -8,8 +8,6 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel
 from starlette.responses import Response
 
-logger = logging.getLogger(__name__)
-
 from .config import MLFLOW_TRACKING_URI, MODEL_NAME, MODEL_STAGE, SKIP_MODEL_LOAD
 from .model_registry import load_model, predict_proba
 from .monitoring.drift import update_input_stats
@@ -19,6 +17,8 @@ from .monitoring.metrics import (
     REQUEST_COUNT,
     REQUEST_LATENCY,
 )
+
+logger = logging.getLogger(__name__)
 
 model = None
 

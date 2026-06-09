@@ -1,3 +1,4 @@
+import logging
 import time
 from contextlib import asynccontextmanager
 
@@ -16,6 +17,8 @@ from .monitoring.metrics import (
     REQUEST_COUNT,
     REQUEST_LATENCY,
 )
+
+logger = logging.getLogger(__name__)
 
 model = None
 
@@ -43,23 +46,29 @@ class InferenceResponse(BaseModel):
     defect_probability: float
 
 
-@app.get("/healthz")
-def healthz():
-    return {
-        "status": "ok",
-        "model_loaded": model is not None,
-        "tracking_uri": MLFLOW_TRACKING_URI,
-    }
+class HealthResponse(BaseModel):
+    status: str
+    model_loaded: bool
+    tracking_uri: str
 
 
-@app.get("/metrics")
-def metrics():
+@app.get("/healthz", response_model=HealthResponse)
+def healthz() -> HealthResponse:
+    return HealthResponse(
+        status="ok",
+        model_loaded=model is not None,
+        tracking_uri=MLFLOW_TRACKING_URI,
+    )
+
+
+@app.get("/metrics", response_model=None)
+def metrics() -> Response:
     data = generate_latest()
     return Response(content=data, media_type=CONTENT_TYPE_LATEST)
 
 
 @app.post("/infer", response_model=InferenceResponse)
-def infer(req: InferenceRequest):
+def infer(req: InferenceRequest) -> InferenceResponse:
     start = time.time()
     INFLIGHT.inc()
     status = "200"
@@ -69,11 +78,12 @@ def infer(req: InferenceRequest):
         ).reshape(1, -1)
         update_input_stats(x[0])
         p = predict_proba(model, x)
-        return {"ok": True, "defect_probability": float(p)}
-    except Exception as e:
+        return InferenceResponse(ok=True, defect_probability=float(p))
+    except Exception:
         INFERENCE_ERRORS.inc()
         status = "500"
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Inference failed")
+        raise HTTPException(status_code=500, detail="Inference failed")
     finally:
         REQUEST_LATENCY.observe(time.time() - start)
         REQUEST_COUNT.labels(endpoint="/infer", method="POST", status=status).inc()

@@ -13,7 +13,10 @@ RUN pip install --no-cache-dir -r /app/requirements-base.txt
 
 COPY app /app/app
 COPY ops/start.sh /app/start.sh
-RUN chmod +x /app/start.sh
+RUN chmod +x /app/start.sh \
+    && useradd --create-home --shell /usr/sbin/nologin appuser \
+    && chown -R appuser:appuser /app
+USER appuser
 
 EXPOSE 8000
 CMD ["/app/start.sh"]

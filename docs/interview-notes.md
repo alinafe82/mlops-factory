@@ -33,7 +33,7 @@ CI-supported path.
 Because routine CI should validate the service shape quickly. Heavy registry and framework
 checks can run in a separate scheduled or release workflow.
 
-**What would make this production-ready?**
+**What would need to change before live operations?**
 Model lineage, promotion approvals, rollback commands, feature quality checks, registry
 credentials, canary metrics, and integration tests against MLflow.
 

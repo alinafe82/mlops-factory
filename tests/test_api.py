@@ -47,6 +47,17 @@ def test_infer_rejects_non_finite_measurements():
     assert response.status_code == 422
 
 
+def test_infer_rejects_numeric_nan_without_validation_serialization_failure():
+    response = client.post(
+        "/infer",
+        content='{"temperature": NaN, "vibration": 0.3, "pressure": 30, "rpm": 1500}',
+        headers={"content-type": "application/json"},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"]
+
+
 def test_infer_rejects_out_of_range_model_probability(monkeypatch):
     import app.main
 

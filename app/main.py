@@ -3,10 +3,11 @@ import time
 from contextlib import asynccontextmanager
 
 import numpy as np
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, ConfigDict, Field
-from starlette.responses import Response
+from starlette.responses import JSONResponse, Response
 
 from .config import MLFLOW_TRACKING_URI, MODEL_NAME, MODEL_STAGE, SKIP_MODEL_LOAD
 from .model_registry import load_model, predict_proba
@@ -32,6 +33,17 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="MLOps Factory Inference", version="1.0.0", lifespan=lifespan)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(
+    _request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    errors = [
+        {key: value for key, value in error.items() if key not in {"ctx", "input"}}
+        for error in exc.errors()
+    ]
+    return JSONResponse(status_code=422, content={"detail": errors})
 
 
 class InferenceRequest(BaseModel):

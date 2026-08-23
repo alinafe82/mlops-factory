@@ -17,7 +17,7 @@ concurrency:
 jobs:
   build-scan:
     name: build-push
-    if: github.event_name != 'push'
+    if: github.event_name != 'push' || vars.ENABLE_GHCR_PUBLISH != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -51,7 +51,7 @@ jobs:
 
   publish:
     name: build-push
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && vars.ENABLE_GHCR_PUBLISH == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:

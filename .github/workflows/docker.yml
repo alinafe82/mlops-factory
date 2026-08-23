@@ -82,15 +82,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Scan the exact image before publishing
-        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
-        with:
-          image-ref: ${{ env.IMMUTABLE_TAG }}
-          format: table
-          exit-code: "1"
-          ignore-unfixed: true
-          severity: HIGH,CRITICAL
-
       - name: Log in to GHCR
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
@@ -115,8 +106,20 @@ jobs:
             echo "exists=false" >> "${GITHUB_OUTPUT}"
           fi
 
+      - name: Pull the exact published image on retries
+        if: steps.existing.outputs.exists == 'true'
+        run: docker pull "${IMMUTABLE_TAG}"
+
+      - name: Scan the exact image before publishing
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
+        with:
+          image-ref: ${{ env.IMMUTABLE_TAG }}
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+
       - name: Generate SPDX SBOM for the approved image
-        if: steps.existing.outputs.exists == 'false'
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           image: ${{ env.IMMUTABLE_TAG }}
@@ -154,7 +157,6 @@ jobs:
           echo "digest=${digest}" >> "${GITHUB_OUTPUT}"
 
       - name: Attest build provenance
-        if: steps.existing.outputs.exists == 'false'
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-name: ${{ env.IMAGE }}
@@ -162,7 +164,6 @@ jobs:
           push-to-registry: true
 
       - name: Attest the SBOM
-        if: steps.existing.outputs.exists == 'false'
         uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
         with:
           subject-name: ${{ env.IMAGE }}
@@ -170,7 +171,28 @@ jobs:
           sbom-path: sbom.spdx.json
           push-to-registry: true
 
+      - name: Check that this is still the current main revision
+        id: current
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          current_sha="$(
+            gh api "repos/${REPOSITORY}/git/ref/heads/${DEFAULT_BRANCH}" --jq '.object.sha'
+          )"
+          if [[ "${current_sha}" == "${EXPECTED_SHA}" ]]; then
+            echo "promote=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "promote=false" >> "${GITHUB_OUTPUT}"
+            echo "Skipping latest promotion: ${EXPECTED_SHA} is no longer ${DEFAULT_BRANCH}."
+          fi
+
       - name: Promote the approved digest to latest
+        if: steps.current.outputs.promote == 'true'
         env:
           APPROVED_DIGEST: ${{ steps.subject.outputs.digest }}
         run: >-

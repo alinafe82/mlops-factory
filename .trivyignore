@@ -1,0 +1,4 @@
+# MLflow 3.15.1 requires cryptography<50. cryptography 50.0.0 contains the
+# upstream fix but is currently dependency-incompatible. Re-evaluate when
+# MLflow relaxes its upper bound; this exception expires automatically.
+CVE-2026-69247 exp:2026-09-06

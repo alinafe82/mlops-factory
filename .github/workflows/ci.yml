@@ -1,26 +1,56 @@
-name: ci
+name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: mlops-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
-      with:
-        python-version: '3.11'
-    - name: Install deps (lightweight)
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r app/requirements-dev.txt
-    - name: Lint
-      run: flake8 app tests
-    - name: Tests
-      run: PYTHONPATH=. pytest -q
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: app/requirements-dev.txt
+      - name: Install lightweight dependencies
+        run: python -m pip install --disable-pip-version-check -r app/requirements-dev.txt
+      - name: Verify dependency consistency
+        run: python -m pip check
+      - name: Lint
+        run: flake8 app tests
+      - name: Test API and data contracts
+        run: PYTHONPATH=. pytest -q
+
+  python-3-13:
+    name: Python 3.13 compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: app/requirements-dev.txt
+      - name: Install lightweight dependencies
+        run: python -m pip install --disable-pip-version-check -r app/requirements-dev.txt
+      - name: Verify dependency consistency
+        run: python -m pip check
+      - name: Test API and data contracts
+        run: PYTHONPATH=. pytest -q

@@ -38,3 +38,33 @@ def test_infer_500_does_not_leak_exception_detail(monkeypatch):
     assert "internal-only" not in str(body)
     assert "sensitive" not in str(body)
     assert body == {"detail": "Inference failed"}
+
+
+def test_infer_rejects_non_finite_measurements():
+    payload = {"temperature": "NaN", "vibration": 0.3, "pressure": 30, "rpm": 1500}
+    response = client.post("/infer", json=payload)
+
+    assert response.status_code == 422
+
+
+def test_infer_rejects_numeric_nan_without_validation_serialization_failure():
+    response = client.post(
+        "/infer",
+        content='{"temperature": NaN, "vibration": 0.3, "pressure": 30, "rpm": 1500}',
+        headers={"content-type": "application/json"},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"]
+
+
+def test_infer_rejects_out_of_range_model_probability(monkeypatch):
+    import app.main
+
+    monkeypatch.setattr(app.main, "predict_proba", lambda *_args, **_kwargs: 1.5)
+    payload = {"temperature": 60, "vibration": 0.3, "pressure": 30, "rpm": 1500}
+
+    response = client.post("/infer", json=payload)
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Inference failed"}

@@ -9,3 +9,4 @@ mlflow==3.16.0
 click==8.4.2
 httpx==0.28.1
 setuptools>=84.0.0
+cryptography>=50.0.0

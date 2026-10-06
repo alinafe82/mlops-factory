@@ -6,7 +6,7 @@ numpy==2.4.6
 pandas==2.3.3
 scikit-learn==1.9.1
 mlflow==3.16.0
-click==8.4.2
+click==8.5.0
 httpx==0.28.1
 setuptools>=84.0.0
 cryptography>=50.0.0

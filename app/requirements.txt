@@ -9,4 +9,4 @@ mlflow==3.16.0
 cryptography>=50.0.0
 click==8.5.0
 tensorflow==2.21.0
-torch==2.13.0
+torch==2.14.0
